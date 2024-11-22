@@ -1,34 +1,32 @@
-# Simple Voting
+# Simple Voting Smart Contract
+
+This repository provides a comprehensive guide to creating, building, deploying, and interacting with a simple voting smart contract on the **MultiversX blockchain**.
 
 ---
 
 ## Why MultiversX?
 
-MultiversX offers a robust blockchain platform with unparalleled performance and developer-friendly tools. Here's why you should consider it:
+MultiversX is a high-performance blockchain designed for scalability, efficiency, and low-cost transactions, making it ideal for smart contract development. Here's why:
 
 ### **Performance**
-- **Throughput**: 15,000 transactions per second (TPS) with $0.001 transaction cost.
-- **Scalability**: Adaptive State Sharding allows scaling beyond 100,000 TPS as the network grows.
-- **Efficiency**: Achieved 263,000 TPS on testnet.
+- **High Throughput:** Handles up to 15,000 transactions per second (TPS) with transaction costs as low as $0.001.
+- **Scalability:** Adaptive State Sharding enables the network to scale beyond 100,000 TPS as it grows.
+- **Tested Efficiency:** Reached up to 263,000 TPS on the testnet.
 
 ### **Developer Ecosystem**
-- **IDE and Framework**: MultiversX IDE, Rust-based framework, and debugging tools.
-- **Royalties**: Developers earn 30% of the gas paid for smart contract execution.
-- **WebAssembly (WASM) VM**: Support for smart contracts written in any language that compiles to WASM.
+- **Comprehensive Tools:** Includes an IDE, a Rust-based framework, and debugging utilities.
+- **Incentives:** Developers earn 30% of gas fees for contract execution.
+- **WASM Compatibility:** Allows the use of WebAssembly (WASM) for diverse programming languages.
 
 ### **Rust Framework**
-- Low-level, multi-paradigm language optimized for performance and safety.
-- Enables high-efficiency, low-gas smart contracts.
+Rust offers a robust environment for developing efficient and secure smart contracts with minimal gas costs.
 
 ---
 
-## Getting Started
+## **Getting Started**
 
-
-## Installation
-
-### **1. Install `pipx`**
-`pipx` is the recommended way to install the MultiversX CLI (`mxpy`).
+### **Step 1: Install `pipx`**
+`pipx` is the recommended tool for installing the MultiversX CLI (`mxpy`).
 
 #### Ubuntu & Windows WSL
 ```bash
@@ -43,25 +41,19 @@ brew install pipx
 pipx ensurepath
 ```
 
-Confirm installation:
+Verify installation:
 ```bash
 pipx --version
 ```
 
----
-
-### **2. Install `mxpy`**
-The MultiversX CLI (`mxpy`) is a versatile tool for interacting with the blockchain and managing smart contracts.
-
-Install `mxpy`:
+### **Step 2: Install `mxpy`**
+Install the MultiversX CLI for blockchain interactions and smart contract management:
 ```bash
 pipx install multiversx-sdk-cli --force
 ```
 
----
-
-### **3. Install Rust**
-Rust is essential for compiling smart contracts.
+### **Step 3: Install Rust**
+Rust is required to compile smart contracts.
 
 #### Ubuntu & Windows WSL
 ```bash
@@ -73,7 +65,7 @@ sudo apt install build-essential pkg-config libssl-dev
 xcode-select --install
 ```
 
-Install Rust using `mxpy`:
+Install Rust via `mxpy`:
 ```bash
 mxpy deps install rust --overwrite
 ```
@@ -88,7 +80,7 @@ rustup show
 
 ## Creating a New Smart Contract Project
 
-To create an empty smart contract project:
+Initialize a new smart contract project:
 ```bash
 sc-meta new --template empty --name simple-voting
 ```
@@ -102,7 +94,7 @@ cargo check
 
 ## Building the Smart Contract
 
-Compile the smart contract source code into WebAssembly (WASM) bytecode:
+Compile the smart contract into WebAssembly (WASM) bytecode:
 ```bash
 sc-meta all build
 ```
@@ -115,30 +107,90 @@ output/
 ├── simple-voting.mxsc.json
 └── simple-voting.wasm
 ```
-
 #### Key Outputs:
-- **`simple-voting.wasm`**: The WASM bytecode to deploy to the blockchain.
-- **`simple-voting.abi.json`**: The Application Binary Interface (ABI) defines how to interact with the smart contract.
+- **`simple-voting.wasm`**: Compiled bytecode for deployment.
+- **`simple-voting.abi.json`**: ABI for interacting with the contract.
 
 ---
 
-## Deploying the Smart Contract in devnet
+## Deploying the Smart Contract
 
-To deploy the compiled contract:
+### Deployment to the Devnet
+
+Define the deployment arguments in `deploy_arguments.json`:
+```json
+[
+  "What is your favorite programming language?", 
+  ["Rust", "Python", "JavaScript", "C++"]
+]
+```
+
+Deploy the contract:
 ```bash
 mxpy --verbose contract deploy \
   --recall-nonce \
   --bytecode="./output/simple-voting.wasm" \
-  --keyfile="../<your-wallet-keyfile>.json" \
-  --gas-limit=100000000 \
-  --proxy="https://devnet-gateway.multiversx.com" \
-  --chain="D" \
+  --proxy=https://devnet-gateway.multiversx.com \
+  --abi ./output/simple-voting.abi.json \
+  --arguments-file ./deploy_arguments.json \
+  --gas-limit 500000000 \
+  --keyfile="./<your-wallet-keyfile>.json" \
   --send
 ```
 
-Replace `<your-wallet-keyfile>.json` with your wallet file name. The command will ask for your password twice.
-
-Take note of the contract address in the terminal.
+Replace `<your-wallet-keyfile>.json` with your wallet keyfile name. Note the contract address after successful deployment.
 
 ---
+
+## Upgrading the Smart Contract
+
+To upgrade a deployed contract:
+
+1. Build the updated contract:
+   ```bash
+   sc-meta all build
+   ```
+
+2. Deploy the upgraded bytecode:
+   ```bash
+   mxpy contract upgrade erd1<your-contract-address> \
+     --bytecode ./output/simple-voting.wasm \
+     --proxy=https://devnet-gateway.multiversx.com \
+     --chain D \
+     --recall-nonce \
+     --gas-limit 5000000 \
+     --keyfile="./<your-wallet-keyfile>.json" \
+     --send
+   ```
+
+---
+
+## Interacting with the Smart Contract
+
+### Querying the Contract
+Example: Fetch the current poll question.
+```bash
+mxpy contract query erd1<your-contract-address> \
+  --proxy https://devnet-gateway.multiversx.com \
+  --function getPollQuestion
+```
+
+### Voting Example
+Cast a vote for an option (e.g., `Rust`):
+```bash
+mxpy contract call erd1<your-contract-address> \
+  --function vote \
+  --arguments str:Rust \
+  --proxy https://devnet-gateway.multiversx.com \
+  --keyfile "./<your-wallet-keyfile>.json" \
+  --send
+```
+
+---
+
+## Best Practices
+1. **Secure Your Wallet:** Keep your wallet keyfile safe and backed up.
+2. **Optimize Gas Usage:** Write efficient smart contract code to reduce gas costs.
+3. **Test Thoroughly:** Test your contract extensively on the devnet before deploying to the mainnet.
+
 
